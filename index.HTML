@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>IELTS Listening Trainer</title>
+<style>
+body { font-family: Arial; max-width: 800px; margin: 20px auto; }
+textarea { width: 100%; height: 100px; }
+button { margin: 5px; padding: 10px; }
+.card { padding: 10px; border: 1px solid #ddd; margin: 10px 0; }
+.correct { color: green; }
+.wrong { color: red; }
+</style>
+</head>
+
+<body>
+
+<h2>IELTS Listening 生词训练器</h2>
+
+<p>输入生词（用逗号隔开）：</p >
+<textarea id="words"></textarea>
+
+<button onclick="generate()">生成听力句子</button>
+<button onclick="play()">播放语音</button>
+
+<h3>句子</h3>
+<div id="sentences"></div>
+
+<h3>听写模式（填空）</h3>
+<div id="quiz"></div>
+
+<h3>错题本</h3>
+<div id="wrong"></div>
+
+<script>
+let sentences = [];
+let wrongWords = new Set();
+
+function generate() {
+    let words = document.getElementById("words").value.split(",").map(w => w.trim());
+    sentences = [];
+
+    words.forEach(w => {
+        sentences.push(`Do you have ${w} in your daily life?`);
+        sentences.push(`I need to check my ${w} today.`);
+    });
+
+    render();
+    makeQuiz();
+}
+
+function render() {
+    let div = document.getElementById("sentences");
+    div.innerHTML = sentences.map(s => `<div class='card'>${s}</div>`).join("");
+}
+
+function makeQuiz() {
+    let q = document.getElementById("quiz");
+    q.innerHTML = "";
+
+    sentences.forEach(s => {
+        let words = s.split(" ");
+        let hidden = words.map(w => {
+            return Math.random() < 0.2 ? "____" : w;
+        }).join(" ");
+
+        q.innerHTML += `<div class='card'>${hidden}</div>`;
+    });
+}
+
+function play() {
+    let text = sentences.join(". ");
+    let utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "en-GB"; // 英式发音
+    utter.rate = 0.95;
+    speechSynthesis.speak(utter);
+}
+
+// 模拟错词记录（点击句子标错）
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("card")) {
+        let text = e.target.innerText;
+        let words = text.split(" ");
+        words.forEach(w => {
+            if (w.length > 4) wrongWords.add(w);
+        });
+        renderWrong();
+    }
+});
+
+function renderWrong() {
+    document.getElementById("wrong").innerHTML =
+        [...wrongWords].map(w => `<div class='wrong'>${w}</div>`).join("");
+}
+</script>
+
+</body>
+</html>
